@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import ru.netology.exception.NotFoundException;
 import ru.netology.model.Post;
+import ru.netology.model.PostDTO;
 import ru.netology.repository.PostRepository;
 
 import java.util.List;
@@ -19,21 +20,21 @@ public class PostService {
   }
 
 
-  public List<Post> all() {
+  public List<PostDTO> all() {
     return repository.all();
   }
 
 
-  public Post getById(long id) {
+  public PostDTO getById(long id) {
     return repository.getById(id).orElseThrow(NotFoundException::new);
   }
 
-  public Post save(Post post) {
+  public PostDTO save(Post post) {
     return repository.save(post);
   }
 
-  public void removeById(long id) {
-    repository.removeById(id);
+  public List<PostDTO> removeById(long id) {
+    return repository.removeById(id);
   }
 }
 
