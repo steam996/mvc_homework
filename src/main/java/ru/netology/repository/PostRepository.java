@@ -3,6 +3,8 @@ package ru.netology.repository;
 import org.springframework.stereotype.Repository;
 import ru.netology.exception.NotFoundException;
 import ru.netology.model.Post;
+import ru.netology.model.PostDTO;
+import ru.netology.service.PostDTOService;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,19 +19,22 @@ import java.util.stream.Collectors;
 public class PostRepository {
   private ConcurrentHashMap <Long, Post> postMap = new ConcurrentHashMap();
   private AtomicLong id = new AtomicLong();
-  public List<Post> all() {
+  public List<PostDTO> all() {
     if (postMap.isEmpty()){
       return Collections.emptyList();
     }
-    List <Post> postList = postMap.values().stream().collect(Collectors.toList());
+    List <PostDTO> postList = postMap.values().stream()
+            .filter(x -> !x.isRemoved())
+            .map(PostDTOService::postToPostDTO)
+            .collect(Collectors.toList());
     return postList;
   }
 
-  public Optional<Post> getById(long id) {
-    return Optional.ofNullable(postMap.get(id));
+  public Optional<PostDTO> getById(long id) {
+    return Optional.ofNullable(PostDTOService.postToPostDTO(postMap.get(id)));
   }
 
-  public Post save(Post post) {
+  public PostDTO save(Post post) {
     if (!postMap.containsKey(post.getId()) && post.getId() != 0){
       throw new NotFoundException();
     }
@@ -37,12 +42,13 @@ public class PostRepository {
       post.setId(id.incrementAndGet());
     }
     postMap.put(post.getId(), post);
-    return post;
+    return PostDTOService.postToPostDTO(post);
   }
 
-  public void removeById(long id) {
-    if (!postMap.containsKey(id))
+  public List<PostDTO> removeById(long id) {
+    if (!postMap.containsKey(id) || postMap.get(id).isRemoved())
       throw new NotFoundException();
-    postMap.remove(id);
+    postMap.get(id).setRemoved();
+    return all();
   }
 }
